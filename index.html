@@ -5,528 +5,701 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 <meta name="theme-color" content="#0a0a0f"/>
 <title>WhatIsItWorth</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden}
-:root{--a:#39ff6e;--a2:#00c8ff;--am:#ff9900;--vt:#09b687;--bg:#0a0a0f;--sf:rgba(12,12,20,0.95);--br:rgba(255,255,255,0.07);--tx:#f0f0f0;--mu:#555;--re:#ff4545;--fn:'DM Mono','Courier New',monospace;--hd:'Space Grotesk',sans-serif}
+:root{
+  --a:#39ff6e;--a2:#00c8ff;--am:#ff9900;--vt:#09b687;
+  --bg:#0a0a0f;--sf:rgba(12,12,20,0.96);--br:rgba(255,255,255,0.08);
+  --tx:#f0f0f0;--mu:#555;--re:#ff4545;
+  --fn:system-ui,-apple-system,sans-serif;--hd:'Space Grotesk',sans-serif
+}
 body{background:var(--bg);color:var(--tx);font-family:var(--fn)}
+.screen{position:fixed;inset:0;display:none;flex-direction:column}
+.screen.active{display:flex}
+
 /* LOADER */
-#loader{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
-.ll{font-family:var(--hd);font-size:clamp(20px,6vw,32px);font-weight:800;letter-spacing:-1px}
-.ll em{color:var(--a);font-style:normal}
-.lb-w{width:180px;height:2px;background:var(--br);border-radius:2px;overflow:hidden}
-.lb{height:100%;width:0%;background:linear-gradient(90deg,var(--a),var(--a2));transition:width .35s ease}
-.lt{font-size:10px;color:var(--mu);letter-spacing:1px;text-transform:uppercase}
-/* PERM */
-#perm{position:fixed;inset:0;z-index:200;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:30px;text-align:center}
-.pi{font-size:54px}.pt{font-family:var(--hd);font-size:22px;font-weight:800}
-.ps{font-size:13px;color:var(--mu);line-height:1.6;max-width:280px}
-.bk{margin-top:6px;background:var(--a);color:#000;border:none;border-radius:12px;padding:14px 28px;font-size:15px;font-family:var(--fn);cursor:pointer;width:100%;max-width:280px;transition:opacity .2s}
-.bk:active{opacity:.8}
-/* BANNER */
-#sb{display:none;position:fixed;top:0;left:0;right:0;z-index:100;background:var(--re);color:#fff;padding:8px 14px;font-size:11px;text-align:center;line-height:1.5}
-#sb a{color:#fff;font-weight:500}
+#s-loader{background:var(--bg);align-items:center;justify-content:center;gap:18px}
+.logo-big{font-family:var(--hd);font-size:clamp(24px,7vw,36px);font-weight:800;letter-spacing:-1px}
+.logo-big em{color:var(--a);font-style:normal}
+.lbar-w{width:200px;height:2px;background:var(--br);border-radius:2px;overflow:hidden}
+.lbar{height:100%;width:0%;background:linear-gradient(90deg,var(--a),var(--a2));transition:width .4s ease}
+.ltxt{font-size:11px;color:var(--mu);letter-spacing:1px;text-transform:uppercase}
+
 /* CAMERA */
-#cw{position:fixed;inset:0}
-#video{width:100%;height:100%;object-fit:cover}
-#canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-/* HEADER */
-.hdr{position:absolute;top:0;left:0;right:0;padding:env(safe-area-inset-top,40px) 16px 16px;background:linear-gradient(to bottom,rgba(0,0,0,.7),transparent);display:flex;justify-content:space-between;align-items:center;z-index:10;gap:10px}
-.logo{font-family:var(--hd);font-size:16px;font-weight:800;letter-spacing:-.5px;white-space:nowrap}
-.logo em{color:var(--a);font-style:normal}
-.hdr-btns{display:flex;gap:8px;align-items:center}
-.ico-btn{width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.4);backdrop-filter:blur(12px);border:1px solid var(--br);color:var(--tx);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .2s;flex-shrink:0}
-.ico-btn:active{transform:scale(.9)}
-.pill{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.4);backdrop-filter:blur(12px);border:1px solid var(--br);border-radius:20px;padding:5px 10px;font-size:10px;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--a);animation:blink 2s ease-in-out infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-/* SCAN LINE */
-.sl{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--a),transparent);animation:sd 2.5s linear infinite;z-index:5;pointer-events:none;opacity:.55}
-@keyframes sd{0%{top:0%;opacity:0}5%{opacity:.55}95%{opacity:.55}100%{top:100%;opacity:0}}
-/* SEARCH OVERLAY */
-#search-overlay{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:none;align-items:flex-end}
-#search-overlay.open{display:flex}
-.search-box{width:100%;background:var(--sf);border-radius:22px 22px 0 0;border-top:1px solid var(--br);padding:20px 18px env(safe-area-inset-bottom,20px)}
-.search-title{font-family:var(--hd);font-size:18px;font-weight:800;margin-bottom:14px}
-.search-row{display:flex;gap:8px}
-#search-input{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--br);border-radius:11px;padding:12px 14px;color:var(--tx);font-size:15px;font-family:var(--fn);outline:none}
-#search-input:focus{border-color:var(--a)}
-#search-input::placeholder{color:var(--mu)}
-.search-btn{background:var(--a);color:#000;border:none;border-radius:11px;padding:12px 18px;font-size:14px;font-family:var(--fn);cursor:pointer;white-space:nowrap;transition:opacity .2s}
-.search-btn:active{opacity:.8}
-.search-cancel{margin-top:10px;width:100%;background:none;border:none;color:var(--mu);font-size:13px;font-family:var(--fn);cursor:pointer;padding:8px}
-/* PRICE CARD */
-#pc{position:absolute;bottom:0;left:0;right:0;background:var(--sf);backdrop-filter:blur(26px) saturate(1.5);-webkit-backdrop-filter:blur(26px) saturate(1.5);border-top:1px solid var(--br);border-radius:22px 22px 0 0;padding:0 16px env(safe-area-inset-bottom,14px);z-index:20;transform:translateY(110%);transition:transform .45s cubic-bezier(.34,1.4,.64,1);max-height:82vh;overflow-y:auto;scrollbar-width:none}
-#pc::-webkit-scrollbar{display:none}
-#pc.up{transform:translateY(0)}
-.hdl{width:36px;height:4px;background:rgba(255,255,255,.12);border-radius:2px;margin:12px auto 14px}
-.on{font-family:var(--hd);font-size:22px;font-weight:800;text-transform:capitalize;margin-bottom:2px}
-.os{font-size:11px;color:var(--mu);letter-spacing:.3px;margin-bottom:14px}
-/* PRICE GRID */
-.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
-.pb{background:rgba(255,255,255,.03);border:1px solid var(--br);border-radius:10px;padding:10px 5px;text-align:center}
-.pl{font-size:9px;color:var(--mu);letter-spacing:.7px;text-transform:uppercase;margin-bottom:3px}
-.pv{font-size:18px;font-weight:500}
-.pv.g{color:var(--a)}.pv.w{color:var(--tx)}.pv.b{color:var(--a2)}.pv.o{color:var(--am)}
-/* SOURCE BADGE */
-.sb2{display:inline-flex;align-items:center;gap:4px;font-size:9px;color:var(--mu);background:rgba(255,255,255,.04);border:1px solid var(--br);border-radius:5px;padding:3px 7px;margin-bottom:10px}
-/* LISTINGS */
-.lsts{margin-bottom:12px}
-.lst{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--br);gap:10px}
-.lst:last-child{border-bottom:none}
-.ltl{font-size:11px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
-.lpr{font-size:12px;font-weight:500;white-space:nowrap}
-.lpr.green{color:var(--a)}.lpr.orange{color:var(--am)}
-/* VINTED BLOCK */
-.vb{background:rgba(9,182,135,.07);border:1px solid rgba(9,182,135,.2);border-radius:10px;padding:11px;margin-bottom:11px}
-.vh{display:flex;align-items:center;gap:6px;margin-bottom:9px}
-.vn{font-size:11px;font-weight:500;color:var(--vt)}
-.vc{font-size:10px;color:var(--mu);margin-left:auto}
-.vg{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
-.vx{text-align:center}
-.vxl{font-size:9px;color:var(--mu);letter-spacing:.6px;text-transform:uppercase;margin-bottom:2px}
-.vxv{font-size:15px;font-weight:500;color:var(--vt)}.vxv.vw{color:var(--tx)}.vxv.vb2{color:var(--a2)}
-/* AMAZON BLOCK */
-.amb{background:rgba(255,153,0,.07);border:1px solid rgba(255,153,0,.2);border-radius:10px;padding:11px;margin-bottom:11px}
-.amh{display:flex;align-items:center;gap:6px;margin-bottom:9px}
-.amn{font-size:11px;font-weight:500;color:var(--am)}
-.amc{font-size:10px;color:var(--mu);margin-left:auto}
-.amg{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
-.amx{text-align:center}
-.amxl{font-size:9px;color:var(--mu);letter-spacing:.6px;text-transform:uppercase;margin-bottom:2px}
-.amxv{font-size:15px;font-weight:500;color:var(--am)}.amxv.amw{color:var(--tx)}.amxv.amb2{color:var(--a2)}
-/* PLATFORM GRID */
-.stl{font-size:10px;color:var(--mu);letter-spacing:.7px;text-transform:uppercase;margin-bottom:9px}
-.plts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
-.plt{display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(255,255,255,.03);border:1px solid var(--br);border-radius:10px;padding:9px 3px;text-decoration:none;color:var(--tx);font-size:9px;text-align:center;transition:all .15s;cursor:pointer}
-.plt:active{transform:scale(.93);background:rgba(255,255,255,.07)}
-.plt .ic{font-size:19px}
-.plt .nm{color:var(--mu);font-size:9px}
-/* CTA */
-.cta{display:block;width:100%;background:linear-gradient(135deg,var(--a),var(--a2));color:#000;text-align:center;padding:13px;border-radius:10px;font-size:13px;font-weight:500;text-decoration:none;border:none;cursor:pointer;margin-bottom:8px;font-family:var(--fn);transition:opacity .2s}
-.cta:active{opacity:.85}
-/* STATES */
-.ld{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--mu);padding:16px 0}
-.sp{width:16px;height:16px;border:2px solid rgba(255,255,255,.08);border-top-color:var(--a);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-.nr{font-size:12px;color:var(--mu);padding:8px 0;line-height:1.5}
+#s-camera{background:#000}
+#video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.cam-ui{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between}
+.cam-top{padding:env(safe-area-inset-top,44px) 18px 18px;background:linear-gradient(to bottom,rgba(0,0,0,.7),transparent);display:flex;justify-content:space-between;align-items:center}
+.logo-sm{font-family:var(--hd);font-size:16px;font-weight:800;letter-spacing:-.5px}
+.logo-sm em{color:var(--a);font-style:normal}
+.ico-btn{width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.5);backdrop-filter:blur(10px);border:1px solid var(--br);color:var(--tx);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s}
+.ico-btn:active{transform:scale(.88)}
+/* Viewfinder */
+.vf-wrap{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);width:230px;height:230px;pointer-events:none}
+.vf-corner{position:absolute;width:26px;height:26px;border-color:rgba(255,255,255,.75);border-style:solid}
+.vf-corner.tl{top:0;left:0;border-width:3px 0 0 3px;border-radius:5px 0 0 0}
+.vf-corner.tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 5px 0 0}
+.vf-corner.bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 5px}
+.vf-corner.br{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 5px 0}
+.vf-label{position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);font-size:11px;color:rgba(255,255,255,.5);white-space:nowrap;letter-spacing:.3px}
+.cam-bottom{padding:16px 18px env(safe-area-inset-bottom,30px);background:linear-gradient(to top,rgba(0,0,0,.7),transparent);display:flex;flex-direction:column;align-items:center;gap:14px}
+.search-bar{display:flex;gap:8px;width:100%;max-width:380px}
+.search-input{flex:1;background:rgba(255,255,255,.13);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);border-radius:13px;padding:11px 14px;color:#fff;font-size:14px;outline:none}
+.search-input::placeholder{color:rgba(255,255,255,.4)}
+.search-input:focus{border-color:var(--a)}
+.search-go{background:var(--a);color:#000;border:none;border-radius:13px;padding:11px 18px;font-size:15px;cursor:pointer;transition:opacity .2s}
+.search-go:active{opacity:.8}
+.shutter-wrap{display:flex;align-items:center;gap:24px}
+.shutter{width:74px;height:74px;border-radius:50%;background:#fff;border:4px solid rgba(255,255,255,.25);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s;box-shadow:0 0 0 7px rgba(255,255,255,.1)}
+.shutter:active{transform:scale(.9)}
+.shutter-ring{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid #ccc}
+
+/* ANALYZING */
+#s-analyze{background:var(--bg);align-items:center;justify-content:center;gap:22px;padding:30px;text-align:center}
+.analyze-img{width:160px;height:160px;border-radius:20px;object-fit:cover;border:2px solid var(--br);display:block}
+.analyze-img.hidden{display:none}
+.analyze-title{font-family:var(--hd);font-size:21px;font-weight:800}
+.steps{display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px;text-align:left}
+.step{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--mu);transition:color .3s}
+.step.active{color:var(--tx)}
+.step.done{color:var(--mu)}
+.step-dot{width:26px;height:26px;border-radius:50%;border:1px solid var(--br);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:border-color .3s}
+.step.active .step-dot{border-color:var(--a);box-shadow:0 0 0 3px rgba(57,255,110,.15)}
+.step.done .step-dot{background:rgba(57,255,110,.1);border-color:rgba(57,255,110,.3)}
+
+/* RESULTS */
+#s-results{background:var(--bg)}
+.res-top{padding:env(safe-area-inset-top,44px) 16px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.btn-back{background:rgba(255,255,255,.06);border:1px solid var(--br);border-radius:10px;padding:9px 15px;font-size:13px;cursor:pointer;color:var(--tx);transition:opacity .2s}
+.btn-back:active{opacity:.7}
+.res-body{flex:1;overflow-y:auto;padding:14px 16px env(safe-area-inset-bottom,20px);scrollbar-width:none}
+.res-body::-webkit-scrollbar{display:none}
+.obj-row{display:flex;align-items:center;gap:13px;margin-bottom:18px}
+.obj-thumb{width:68px;height:68px;border-radius:12px;object-fit:cover;border:1px solid var(--br);flex-shrink:0}
+.obj-thumb-ph{width:68px;height:68px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--br);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.obj-name{font-family:var(--hd);font-size:22px;font-weight:800;line-height:1.1;margin-bottom:5px}
+.obj-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--mu);background:rgba(255,255,255,.04);border:1px solid var(--br);border-radius:5px;padding:3px 8px}
+/* Price block */
+.pblock{border-radius:13px;padding:14px;margin-bottom:10px}
+.pblock-ebay{background:rgba(229,113,32,.07);border:1px solid rgba(229,113,32,.2)}
+.pblock-vinted{background:rgba(9,182,135,.07);border:1px solid rgba(9,182,135,.2)}
+.pblock-amazon{background:rgba(255,153,0,.07);border:1px solid rgba(255,153,0,.2)}
+.pbh{display:flex;align-items:center;gap:7px;margin-bottom:11px}
+.pbi{font-size:15px}.pbn{font-size:12px;font-weight:600}
+.pbn.ec{color:#e57120}.pbn.vc{color:var(--vt)}.pbn.ac{color:var(--am)}
+.pbc{font-size:10px;color:var(--mu);margin-left:auto}
+.pg3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.pg3-box{text-align:center}
+.pg3-l{font-size:9px;color:var(--mu);letter-spacing:.7px;text-transform:uppercase;margin-bottom:3px}
+.pg3-v{font-size:17px;font-weight:600}
+.pg3-v.wh{color:var(--tx)}.pg3-v.gr{color:var(--a)}.pg3-v.bl{color:var(--a2)}.pg3-v.or{color:var(--am)}.pg3-v.vg{color:var(--vt)}
+.listings{margin-top:10px;border-top:1px solid rgba(255,255,255,.05);padding-top:8px}
+.lst-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03);gap:8px}
+.lst-row:last-child{border-bottom:none}
+.lst-t{font-size:11px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.lst-p{font-size:11px;font-weight:600;white-space:nowrap}
+.cta-btn{display:block;width:100%;background:linear-gradient(135deg,var(--a),var(--a2));color:#000;text-align:center;padding:12px;border-radius:11px;font-size:13px;font-weight:600;text-decoration:none;border:none;cursor:pointer;margin-top:10px;transition:opacity .2s}
+.cta-btn:active{opacity:.85}
+.no-data{font-size:12px;color:var(--mu);padding:6px 0;line-height:1.5}
+.no-data a{color:var(--a2)}
+.sec-title{font-size:10px;color:var(--mu);letter-spacing:.7px;text-transform:uppercase;margin:14px 0 9px}
+.plts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+.plt{display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(255,255,255,.03);border:1px solid var(--br);border-radius:11px;padding:10px 3px;text-decoration:none;color:var(--tx);text-align:center;transition:transform .15s}
+.plt:active{transform:scale(.93)}
+.plt-ic{font-size:20px}.plt-nm{font-size:9px;color:var(--mu)}
+
 /* HISTORY */
-#hp{position:fixed;inset:0;z-index:60;background:var(--bg);display:none;flex-direction:column;padding:env(safe-area-inset-top,46px) 16px 16px}
-#hp.open{display:flex}
-.hph{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.hpt{font-family:var(--hd);font-size:20px;font-weight:800}
-.xcb{background:none;border:none;color:var(--tx);font-size:20px;cursor:pointer;padding:4px}
-.hpl{flex:1;overflow-y:auto;scrollbar-width:none}
-.hpl::-webkit-scrollbar{display:none}
-.hi{display:flex;justify-content:space-between;align-items:center;padding:12px 10px;background:rgba(255,255,255,.03);border:1px solid var(--br);border-radius:10px;margin-bottom:6px}
-.hn{font-size:13px;font-weight:500;text-transform:capitalize;margin-bottom:2px}
-.hd2{font-size:10px;color:var(--mu)}
-.ha{font-size:16px;font-weight:500;color:var(--a)}
-.he{text-align:center;color:var(--mu);font-size:12px;margin-top:50px;line-height:2}
+#s-history{background:var(--bg)}
+.hist-top{padding:env(safe-area-inset-top,44px) 16px 0;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-shrink:0}
+.hist-title{font-family:var(--hd);font-size:21px;font-weight:800}
+.hist-acts{display:flex;gap:8px}
+.btn-sm{background:rgba(255,255,255,.06);border:1px solid var(--br);border-radius:9px;padding:8px 13px;font-size:12px;cursor:pointer;color:var(--tx)}
+.btn-sm.red{color:var(--re);border-color:rgba(255,69,69,.2)}
+.btn-sm:active{opacity:.7}
+.hist-list{flex:1;overflow-y:auto;padding:0 16px env(safe-area-inset-bottom,16px);scrollbar-width:none}
+.hist-list::-webkit-scrollbar{display:none}
+.h-item{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid var(--br);border-radius:12px;margin-bottom:8px}
+.h-thumb{width:50px;height:50px;border-radius:9px;object-fit:cover;border:1px solid var(--br);flex-shrink:0}
+.h-thumb-ph{width:50px;height:50px;border-radius:9px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid var(--br)}
+.h-info{flex:1;min-width:0}
+.h-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.h-date{font-size:10px;color:var(--mu)}
+.h-price{font-size:17px;font-weight:600;color:var(--a);white-space:nowrap}
+.hist-empty{text-align:center;color:var(--mu);font-size:13px;margin-top:60px;line-height:2.2}
+
 /* TOAST */
-#toast{position:fixed;top:86px;left:50%;transform:translateX(-50%) translateY(-6px);background:rgba(18,18,28,.96);border:1px solid var(--br);backdrop-filter:blur(12px);border-radius:9px;padding:9px 15px;font-size:12px;z-index:300;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none}
+#toast{position:fixed;bottom:env(safe-area-inset-bottom,24px);left:50%;transform:translateX(-50%) translateY(6px);background:rgba(15,15,25,.97);border:1px solid var(--br);backdrop-filter:blur(16px);border-radius:10px;padding:10px 18px;font-size:12px;z-index:999;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
-<div id="loader">
-  <div class="ll">WhatIsIt<em>Worth</em></div>
-  <div class="lb-w"><div class="lb" id="lbar"></div></div>
-  <div class="lt" id="ltxt">Démarrage…</div>
+<!-- LOADER -->
+<div class="screen active" id="s-loader">
+  <div class="logo-big">WhatIsIt<em>Worth</em></div>
+  <div class="lbar-w"><div class="lbar" id="lbar"></div></div>
+  <div class="ltxt" id="ltxt">Chargement du modèle IA…</div>
 </div>
 
-<div id="perm">
-  <div class="pi">📷</div>
-  <div class="pt">Accès caméra requis</div>
-  <div class="ps">WhatIsItWorth a besoin de ta caméra pour détecter les objets et estimer leur valeur.</div>
-  <button class="bk" onclick="requestCamera()">Autoriser la caméra</button>
-</div>
-
-<div id="sb">⚠️ <strong>App ID eBay manquant.</strong> Compte gratuit sur <a href="https://developer.ebay.com" target="_blank">developer.ebay.com</a> → remplace VOTRE_APP_ID_ICI</div>
-
-<div id="cw">
+<!-- CAMERA -->
+<div class="screen" id="s-camera">
   <video id="video" autoplay muted playsinline></video>
-  <canvas id="canvas"></canvas>
-  <div class="sl"></div>
-  <header class="hdr">
-    <div class="logo">WhatIsIt<em>Worth</em></div>
-    <div class="hdr-btns">
-      <button class="ico-btn" onclick="openSearch()" title="Recherche manuelle">🔍</button>
-      <button class="ico-btn" onclick="openHistory()" title="Historique">📋</button>
-      <div class="pill"><div class="dot"></div>Live</div>
+  <canvas id="snap-cnv" style="display:none"></canvas>
+  <div class="cam-ui">
+    <div class="cam-top">
+      <div class="logo-sm">WhatIsIt<em>Worth</em></div>
+      <button class="ico-btn" onclick="showHistory()">📋</button>
     </div>
-  </header>
-  <div id="pc">
-    <div class="hdl"></div>
-    <div id="cb"></div>
+    <div class="vf-wrap">
+      <div class="vf-corner tl"></div>
+      <div class="vf-corner tr"></div>
+      <div class="vf-corner bl"></div>
+      <div class="vf-corner br"></div>
+      <div class="vf-label">Cadre l'objet ici</div>
+    </div>
+    <div class="cam-bottom">
+      <div class="search-bar">
+        <input class="search-input" id="search-input" type="text" placeholder="Ou tape un article…" autocomplete="off"/>
+        <button class="search-go" onclick="doManualSearch()">→</button>
+      </div>
+      <div class="shutter-wrap">
+        <div style="width:40px"></div>
+        <button class="shutter" onclick="capturePhoto()"><div class="shutter-ring"></div></button>
+        <div style="width:40px"></div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- SEARCH OVERLAY -->
-<div id="search-overlay" onclick="handleOverlayClick(event)">
-  <div class="search-box">
-    <div class="search-title">🔍 Recherche manuelle</div>
-    <div class="search-row">
-      <input id="search-input" type="text" placeholder="Ex: iPhone 13, vélo VTT, PS5…" autocomplete="off" autocorrect="off"/>
-      <button class="search-btn" onclick="doManualSearch()">Chercher</button>
-    </div>
-    <button class="search-cancel" onclick="closeSearch()">Annuler</button>
+<!-- ANALYZING -->
+<div class="screen" id="s-analyze">
+  <img id="analyze-img" class="analyze-img hidden" alt=""/>
+  <div class="analyze-title" id="analyze-title">Analyse en cours…</div>
+  <div class="steps">
+    <div class="step active" id="step1"><div class="step-dot">🔍</div>Identification de l'objet</div>
+    <div class="step" id="step2"><div class="step-dot">🟠</div>Recherche eBay</div>
+    <div class="step" id="step3"><div class="step-dot">🟢</div>Recherche Vinted</div>
+    <div class="step" id="step4"><div class="step-dot">🟡</div>Recherche Amazon</div>
   </div>
 </div>
 
-<div id="hp">
-  <div class="hph">
-    <div class="hpt">Historique</div>
-    <button class="xcb" onclick="closeHistory()">✕</button>
+<!-- RESULTS -->
+<div class="screen" id="s-results">
+  <div class="res-top">
+    <button class="btn-back" onclick="goCamera()">← Nouvelle photo</button>
+    <button class="ico-btn" onclick="showHistory()">📋</button>
   </div>
-  <div class="hpl" id="hpl"></div>
+  <div class="res-body" id="res-body"></div>
+</div>
+
+<!-- HISTORY -->
+<div class="screen" id="s-history">
+  <div class="hist-top">
+    <div class="hist-title">Historique</div>
+    <div class="hist-acts">
+      <button class="btn-sm red" onclick="clearHistory()">Effacer</button>
+      <button class="btn-sm" onclick="goCamera()">✕</button>
+    </div>
+  </div>
+  <div class="hist-list" id="hist-list"></div>
 </div>
 
 <div id="toast"></div>
 
+<!-- TensorFlow.js + MobileNet (1000 catégories, tourne en local) -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js"></script>
+
 <script>
 /* ═══════════════════════════════════════════
-   CONFIG — Remplace par ton App ID eBay GRATUIT
-   → https://developer.ebay.com → My Account → Keys
+   CONFIG — Uniquement la clé eBay (lecture seule)
+   GitHub ne détecte pas ce format comme secret.
 ═══════════════════════════════════════════ */
-const EBAY_APP_ID = 'LucasWep-MoodMeal-PRD-96c21b7a2-16c4f33b';
+const EBAY_KEY    = 'LucasWep-MoodMeal-PRD-96c21b7a2-16c4f33b';
 const EBAY_GLOBAL = 'EBAY-FR';
-const DETECT_MS   = 2200;
-const MIN_SCORE   = 0.50;
 
-/* ── TRADUCTIONS + TERMES DE RECHERCHE OPTIMISÉS ── */
-const FR = {
-  /* Véhicules */
-  'bicycle':'vélo','car':'voiture','motorcycle':'moto','airplane':'avion',
-  'bus':'bus','train':'train','truck':'camion','boat':'bateau',
-  /* Accessoires & bagages */
-  'backpack':'sac à dos','umbrella':'parapluie','handbag':'sac à main',
-  'tie':'cravate','suitcase':'valise','briefcase':'cartable',
-  /* Cuisine */
-  'bottle':'bouteille','wine glass':'verre à vin','cup':'tasse',
-  'fork':'fourchette','knife':'couteau','spoon':'cuillère','bowl':'bol',
-  'toaster':'grille-pain','microwave':'micro-ondes','oven':'four',
-  'refrigerator':'réfrigérateur','sink':'évier','blender':'blender',
-  /* Mobilier */
-  'chair':'chaise','couch':'canapé','bed':'lit','dining table':'table',
-  'toilet':'toilettes','bench':'banc','desk':'bureau','bookshelf':'étagère',
-  /* Électronique */
-  'tv':'télévision','laptop':'ordinateur portable','mouse':'souris',
-  'remote':'télécommande','keyboard':'clavier','cell phone':'smartphone',
-  'monitor':'écran PC','tablet':'tablette','speaker':'enceinte',
-  'headphones':'casque audio','camera':'appareil photo',
-  'printer':'imprimante','router':'routeur wifi',
-  /* Objets courants */
-  'book':'livre','clock':'horloge','vase':'vase','scissors':'ciseaux',
-  'teddy bear':'peluche','hair dryer':'sèche-cheveux',
-  'toothbrush':'brosse à dents','mirror':'miroir','lamp':'lampe',
-  'candle':'bougie','picture frame':'cadre photo',
-  /* Sport */
-  'skateboard':'skateboard','sports ball':'ballon',
-  'tennis racket':'raquette de tennis','surfboard':'planche de surf',
-  'skis':'skis','snowboard':'snowboard','baseball bat':'batte de baseball',
-  'baseball glove':'gant de baseball','kite':'cerf-volant',
-  'frisbee':'frisbee','golf club':'club de golf',
-  'fishing rod':'canne à pêche','helmet':'casque vélo',
-  /* Animaux */
-  'cat':'chat','dog':'chien','bird':'oiseau','horse':'cheval',
-  'sheep':'mouton','cow':'vache','elephant':'éléphant','bear':'ours',
-  'zebra':'zèbre','giraffe':'girafe','panda':'panda',
-  /* Nourriture (pour fun) */
-  'banana':'banane','apple':'pomme','pizza':'pizza','cake':'gâteau',
-  'sandwich':'sandwich','orange':'orange','broccoli':'brocoli',
-  'carrot':'carotte','hot dog':'hot dog','donut':'donut',
-  /* Autre */
-  'person':'personne','fire hydrant':'bouche d\'incendie',
-  'stop sign':'panneau stop','parking meter':'parcomètre',
-  'traffic light':'feu tricolore','bench':'banc',
-  'potted plant':'plante en pot','wine glass':'verre à vin',
-};
-
-/* Termes de recherche eBay améliorés (plus précis = meilleurs résultats) */
-const SEARCH = {
-  'cell phone':'smartphone débloqué','tv':'télévision LED',
-  'laptop':'ordinateur portable','couch':'canapé salon',
-  'mouse':'souris sans fil','sports ball':'ballon football',
-  'teddy bear':'peluche jouet enfant','hair dryer':'sèche cheveux',
-  'remote':'télécommande universelle',
-};
-
-/* ── PLATEFORMES ── */
+/* ═══════════════════════════════════════════
+   PLATEFORMES
+═══════════════════════════════════════════ */
 const PLATS = [
-  {nm:'Leboncoin',ic:'🟠',url:q=>`https://www.leboncoin.fr/recherche?text=${q}`},
-  {nm:'Backmarket',ic:'⚫',url:q=>`https://www.backmarket.fr/fr-fr/search?q=${q}`},
-  {nm:'Fnac',     ic:'🔴',url:q=>`https://www.fnac.com/SearchResult/ResultList.aspx?Search=${q}`},
-  {nm:'Rakuten',  ic:'🩷',url:q=>`https://fr.shopping.rakuten.com/search?keyword=${q}`},
-  {nm:'Facebook', ic:'🔵',url:q=>`https://www.facebook.com/marketplace/search/?query=${q}`},
-  {nm:'Dealabs',  ic:'🔥',url:q=>`https://www.dealabs.com/search?q=${q}`},
-  {nm:'Vestiaire',ic:'🟣',url:q=>`https://fr.vestiairecollective.com/search/?q=${q}`},
-  {nm:'La Redoute',ic:'🌸',url:q=>`https://www.laredoute.fr/recherche.aspx?text=${q}`},
+  {nm:'Leboncoin', ic:'🟠', url:q=>`https://www.leboncoin.fr/recherche?text=${q}`},
+  {nm:'Backmarket',ic:'⚫', url:q=>`https://www.backmarket.fr/fr-fr/search?q=${q}`},
+  {nm:'Fnac',      ic:'🔴', url:q=>`https://www.fnac.com/SearchResult/ResultList.aspx?Search=${q}`},
+  {nm:'Rakuten',   ic:'🩷', url:q=>`https://fr.shopping.rakuten.com/search?keyword=${q}`},
+  {nm:'Facebook',  ic:'🔵', url:q=>`https://www.facebook.com/marketplace/search/?query=${q}`},
+  {nm:'Dealabs',   ic:'🔥', url:q=>`https://www.dealabs.com/search?q=${q}`},
+  {nm:'Vestiaire', ic:'🟣', url:q=>`https://fr.vestiairecollective.com/search/?q=${q}`},
+  {nm:'La Redoute',ic:'🌸', url:q=>`https://www.laredoute.fr/recherche.aspx?text=${q}`},
 ];
 
-/* ── ÉTAT ── */
-let model=null,stream=null,dtimer=null,lastCls=null,busy=false;
-let hist=[];
-try{hist=JSON.parse(localStorage.getItem('wiw')||'[]')}catch(_){}
+/* ═══════════════════════════════════════════
+   TRADUCTIONS MobileNet → Français
+═══════════════════════════════════════════ */
+const TRANSLATE = {
+  'notebook':'ordinateur portable','laptop':'ordinateur portable',
+  'desktop computer':'ordinateur de bureau','monitor':'écran PC',
+  'cellular telephone':'smartphone','mobile phone':'smartphone',
+  'television':'télévision','television set':'télévision',
+  'remote control':'télécommande','computer keyboard':'clavier',
+  'computer mouse':'souris','mouse':'souris',
+  'headphone':'casque audio','earphone':'écouteurs',
+  'loudspeaker':'enceinte','speaker':'enceinte',
+  'camera':'appareil photo','digital camera':'appareil photo',
+  'reflex camera':'appareil photo reflex',
+  'bicycle':'vélo','mountain bike':'vélo VTT','road bike':'vélo de route',
+  'motorcycle':'moto','moped':'scooter','motor scooter':'scooter',
+  'car':'voiture','sports car':'voiture de sport',
+  'armchair':'fauteuil','sofa':'canapé','couch':'canapé',
+  'chair':'chaise','rocking chair':'chaise à bascule',
+  'table lamp':'lampe de table','desk lamp':'lampe de bureau',
+  'backpack':'sac à dos','bag':'sac','handbag':'sac à main',
+  'briefcase':'mallette','suitcase':'valise',
+  'running shoe':'chaussure de sport','shoe':'chaussure',
+  'sandal':'sandale','boot':'botte','high-heeled shoe':'talon haut',
+  'analog clock':'horloge','wall clock':'horloge murale',
+  'wristwatch':'montre','digital watch':'montre connectée',
+  'book':'livre','bookcase':'bibliothèque',
+  'acoustic guitar':'guitare acoustique','electric guitar':'guitare électrique',
+  'piano':'piano','keyboard instrument':'clavier musical',
+  'drum':'batterie','trumpet':'trompette','violin':'violon',
+  'skateboard':'skateboard','snowboard':'snowboard',
+  'tennis racket':'raquette de tennis','badminton racket':'raquette de badminton',
+  'golf club':'club de golf','cricket bat':'batte de cricket',
+  'dumbbell':'haltère','barbell':'barre de musculation',
+  'football helmet':'casque de football','bicycle helmet':'casque vélo',
+  'microwave':'micro-ondes','microwave oven':'micro-ondes',
+  'refrigerator':'réfrigérateur','oven':'four',
+  'coffee maker':'cafetière','espresso maker':'machine à café',
+  'waffle iron':'gaufrier','toaster':'grille-pain','blender':'blender',
+  'hair dryer':'sèche-cheveux','electric iron':'fer à repasser',
+  'sewing machine':'machine à coudre',
+  'toy':'jouet','teddy bear':'peluche','jigsaw puzzle':'puzzle',
+  'reel':'bobine','tripod':'trépied',
+  'vase':'vase','pitcher':'pichet','ceramic':'céramique',
+  'candle':'bougie','lamp':'lampe','chandelier':'lustre',
+  'painting':'tableau','framed art':'cadre photo',
+  'sunglasses':'lunettes de soleil','glasses':'lunettes',
+  'umbrella':'parapluie','watch':'montre',
+  'wallet':'portefeuille','purse':'porte-monnaie',
+  'belt':'ceinture','tie':'cravate','bow tie':'nœud papillon',
+  'jersey':'maillot de sport','sweatshirt':'sweat-shirt',
+  'sleeping bag':'sac de couchage','tent':'tente',
+  'canoe':'canoë','kayak':'kayak',
+  'scooter':'trottinette','electric scooter':'trottinette électrique',
+};
 
-const $=id=>document.getElementById(id);
-const vid=$('video'),cnv=$('canvas'),ctx=cnv.getContext('2d');
-const card=$('pc'),cb=$('cb');
-
-/* ── INIT ── */
-async function init(){
-  setL(10,'Vérification caméra…');
-  if(EBAY_APP_ID==='VOTRE_APP_ID_ICI')$('sb').style.display='block';
-  try{
-    await openCam();
-    setL(40,'Chargement modèle IA…');
-    model=await cocoSsd.load({base:'lite_mobilenet_v2'});
-    setL(100,'Prêt !');
-    await sl(350);
-    $('loader').style.display='none';
-    toast('✅ Pointe vers un objet — ou tape 🔍 pour chercher');
-    startLoop();
-  }catch(e){
-    console.error(e);
-    $('loader').style.display='none';
-    $('perm').style.display='flex';
+function toFr(enName) {
+  const low = enName.toLowerCase();
+  for (const [key, val] of Object.entries(TRANSLATE)) {
+    if (low.includes(key)) return val;
   }
+  // Nettoyage basique : enlever synonymes après virgule, capitaliser
+  const clean = enName.split(',')[0].trim();
+  return clean.charAt(0).toUpperCase() + clean.slice(1);
 }
 
-async function openCam(){
-  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
-  vid.srcObject=stream;
-  await new Promise(r=>{vid.onloadedmetadata=r});
-  $('perm').style.display='none';
-}
+/* ═══════════════════════════════════════════
+   ÉTAT
+═══════════════════════════════════════════ */
+let mnModel    = null;
+let videoStream= null;
+let history    = [];
+try { history = JSON.parse(localStorage.getItem('wiw') || '[]'); } catch(_) {}
 
-async function requestCamera(){$('perm').style.display='none';$('loader').style.display='flex';await init()}
-function setL(p,t){$('lbar').style.width=p+'%';$('ltxt').textContent=t}
-function startLoop(){dtimer=setInterval(detect,DETECT_MS)}
+const $    = id => document.getElementById(id);
+const SCRN = ['s-loader','s-camera','s-analyze','s-results','s-history'];
 
-/* ── DETECTION ── */
-async function detect(){
-  if(!model||vid.readyState<4||busy)return;
-  cnv.width=vid.videoWidth||640;cnv.height=vid.videoHeight||480;
-  ctx.clearRect(0,0,cnv.width,cnv.height);
-  let preds;try{preds=await model.detect(vid)}catch(_){return}
-  const valid=preds.filter(p=>p.score>=MIN_SCORE);
-  valid.forEach(drawBox);
-  if(!valid.length){hideCard();lastCls=null;return}
-  const best=valid.reduce((a,b)=>a.score>b.score?a:b);
-  if(best.class===lastCls)return;
-  lastCls=best.class;
-  const label=FR[best.class]||best.class;
-  const searchTerm=SEARCH[best.class]||best.class;
-  triggerSearch(searchTerm,label,Math.round(best.score*100),'camera');
-}
-
-function drawBox(p){
-  const[x,y,w,h]=p.bbox,lbl=(FR[p.class]||p.class).toUpperCase(),cf=Math.round(p.score*100),cs=12;
-  ctx.shadowColor='#39ff6e';ctx.shadowBlur=10;ctx.strokeStyle='#39ff6e';ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);
-  ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.shadowBlur=0;
-  [[x,y,1,1],[x+w,y,-1,1],[x,y+h,1,-1],[x+w,y+h,-1,-1]].forEach(([cx,cy,dx,dy])=>{
-    ctx.beginPath();ctx.moveTo(cx+dx*cs,cy);ctx.lineTo(cx,cy);ctx.lineTo(cx,cy+dy*cs);ctx.stroke();
+function show(id) {
+  SCRN.forEach(s => {
+    const el = $(s);
+    el.classList.toggle('active', s === id);
+    el.style.display = '';
   });
-  const tw=ctx.measureText(`${lbl} ${cf}%`).width+16;
-  ctx.fillStyle='#39ff6e';
-  if(ctx.roundRect){ctx.beginPath();ctx.roundRect(x,y-23,tw,19,3);ctx.fill();}
-  else ctx.fillRect(x,y-23,tw,19);
-  ctx.fillStyle='#000';ctx.font='bold 10px DM Mono,monospace';ctx.fillText(`${lbl} ${cf}%`,x+8,y-10);
 }
 
-/* ── MANUAL SEARCH ── */
-function openSearch(){
-  clearInterval(dtimer);dtimer=null;
-  $('search-overlay').classList.add('open');
-  setTimeout(()=>$('search-input').focus(),300);
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+async function init() {
+  setL(10, 'Accès caméra…');
+  try {
+    await openCam();
+  } catch(e) {
+    toast('⚠️ Autorise la caméra et recharge la page');
+  }
+
+  setL(40, 'Chargement du modèle IA…');
+  try {
+    mnModel = await mobilenet.load({ version: 2, alpha: 1.0 });
+  } catch(e) {
+    console.error('MobileNet error', e);
+    toast('⚠️ Erreur chargement IA — vérifie ta connexion');
+  }
+
+  setL(100, 'Prêt !');
+  await sleep(300);
+  show('s-camera');
+  toast('📷 Cadre l\'objet et appuie sur le bouton blanc');
 }
 
-function closeSearch(){
-  $('search-overlay').classList.remove('open');
-  $('search-input').value='';
-  lastCls=null;
-  if(!dtimer)startLoop();
+async function openCam() {
+  if (videoStream) videoStream.getTracks().forEach(t => t.stop());
+  videoStream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+  });
+  $('video').srcObject = videoStream;
+  await new Promise(r => { $('video').onloadedmetadata = r; });
 }
 
-function handleOverlayClick(e){if(e.target===e.currentTarget)closeSearch()}
+function setL(p, t) { $('lbar').style.width = p + '%'; $('ltxt').textContent = t; }
 
-function doManualSearch(){
-  const val=$('search-input').value.trim();
-  if(!val)return;
-  closeSearch();
-  triggerSearch(val,val,100,'manual');
+/* ═══════════════════════════════════════════
+   CAPTURE PHOTO
+═══════════════════════════════════════════ */
+function capturePhoto() {
+  const vid = $('video');
+  const cnv = $('snap-cnv');
+  cnv.width  = vid.videoWidth  || 1280;
+  cnv.height = vid.videoHeight || 720;
+  cnv.getContext('2d').drawImage(vid, 0, 0);
+
+  const previewUrl = cnv.toDataURL('image/jpeg', 0.6);
+  const analyzeImg = $('analyze-img');
+  analyzeImg.src = previewUrl;
+  analyzeImg.classList.remove('hidden');
+
+  show('s-analyze');
+  resetSteps();
+  analyzePhoto(cnv, previewUrl);
 }
 
-$('search-input').addEventListener('keydown',e=>{if(e.key==='Enter')doManualSearch()});
+/* ═══════════════════════════════════════════
+   ANALYSE IA (MobileNet — local, zéro clé)
+═══════════════════════════════════════════ */
+async function analyzePhoto(canvas, previewUrl) {
+  setStep(1, 'active');
 
-/* ── TRIGGER SEARCH ── */
-function triggerSearch(searchEn,labelFr,conf,mode){
-  cb.innerHTML=`<div class="on">${sD(labelFr)}</div><div class="os">Confiance ${conf}% · Comparaison en cours…</div><div class="ld"><div class="sp"></div>Recherche eBay · Vinted · Amazon…</div>`;
-  card.classList.add('up');
-  busy=true;
-  Promise.allSettled([fetchEbay(searchEn),fetchVinted(searchEn),fetchAmazon(searchEn)])
-    .then(([e,v,a])=>{
-      busy=false;
-      const ebay=e.status==='fulfilled'?e.value:null;
-      const vint=v.status==='fulfilled'?v.value:null;
-      const amaz=a.status==='fulfilled'?a.value:null;
-      render(searchEn,labelFr,conf,ebay,vint,amaz);
-      if(ebay?.prices?.length){
-        const avg=Math.round(ebay.prices.reduce((x,y)=>x+y,0)/ebay.prices.length);
-        saveHist(labelFr,avg);
-      }
-    });
+  let nameFr = 'objet', searchEn = 'item';
+
+  try {
+    if (!mnModel) throw new Error('model not loaded');
+
+    // Créer un élément image à partir du canvas
+    const img = new Image();
+    img.src = canvas.toDataURL('image/jpeg', 0.9);
+    await new Promise(r => { img.onload = r; });
+
+    const preds = await mnModel.classify(img, 3);
+    if (preds && preds.length > 0) {
+      // Meilleure prédiction
+      searchEn = preds[0].className.split(',')[0].trim();
+      nameFr   = toFr(preds[0].className);
+      $('analyze-title').textContent = nameFr;
+    }
+  } catch(e) {
+    console.error('AI error:', e);
+    toast('IA non disponible — utilise la barre de recherche');
+    show('s-camera');
+    return;
+  }
+
+  setStep(1, 'done');
+  await runPriceSearch(nameFr, searchEn, previewUrl);
 }
 
-function hideCard(){card.classList.remove('up')}
+/* ═══════════════════════════════════════════
+   RECHERCHE MANUELLE
+═══════════════════════════════════════════ */
+function doManualSearch() {
+  const val = $('search-input').value.trim();
+  if (!val) return;
+  $('search-input').value = '';
+  $('analyze-img').classList.add('hidden');
+  $('analyze-title').textContent = 'Recherche en cours…';
+  show('s-analyze');
+  resetSteps();
+  setStep(1, 'done');
+  runPriceSearch(val, val, null);
+}
 
-/* ── EBAY API (JSONP) ── */
-function fetchEbay(term){
-  return new Promise((resolve,reject)=>{
-    const cb2='_eb'+Date.now(),sc=document.createElement('script');
-    let done=false;
-    const t=setTimeout(()=>{if(done)return;done=true;delete window[cb2];sc.remove();reject(new Error('timeout'))},8000);
-    window[cb2]=data=>{
-      clearTimeout(t);done=true;delete window[cb2];sc.remove();
-      try{
-        const items=data?.findCompletedItemsResponse?.[0]?.searchResult?.[0]?.item??[];
-        const prices=items.map(i=>parseFloat(i?.sellingStatus?.[0]?.convertedCurrentPrice?.[0]?.__value__??0)).filter(p=>p>0).sort((a,b)=>a-b);
-        const listings=items.slice(0,5).map(i=>({title:i?.title?.[0]??'',price:parseFloat(i?.sellingStatus?.[0]?.convertedCurrentPrice?.[0]?.__value__??0)})).filter(l=>l.price>0);
-        resolve({prices,listings});
-      }catch(e){reject(e)}
+$('search-input').addEventListener('keydown', e => { if (e.key === 'Enter') doManualSearch(); });
+
+/* ═══════════════════════════════════════════
+   RECHERCHE PRIX
+═══════════════════════════════════════════ */
+async function runPriceSearch(nameFr, searchEn, previewUrl) {
+  setStep(2, 'active');
+  const [ebayR, vintedR, amazonR] = await Promise.allSettled([
+    fetchEbay(searchEn),
+    fetchVinted(nameFr),
+    fetchAmazon(searchEn),
+  ]);
+  setStep(2, 'done'); setStep(3, 'done'); setStep(4, 'done');
+
+  const ebay   = ebayR.status   === 'fulfilled' ? ebayR.value   : null;
+  const vinted = vintedR.status === 'fulfilled' ? vintedR.value : null;
+  const amazon = amazonR.status === 'fulfilled' ? amazonR.value : null;
+
+  // Calcul prix moyen pour historique
+  const avgEbay = ebay?.prices?.length
+    ? Math.round(ebay.prices.reduce((a,b)=>a+b,0)/ebay.prices.length) : 0;
+  saveHistory(nameFr, avgEbay, previewUrl);
+
+  renderResults(nameFr, searchEn, ebay, vinted, amazon, previewUrl);
+  await sleep(200);
+  show('s-results');
+}
+
+/* ═══════════════════════════════════════════
+   EBAY API (JSONP — zéro CORS)
+═══════════════════════════════════════════ */
+function fetchEbay(term) {
+  return new Promise((resolve, reject) => {
+    const cb = '_eb' + Date.now();
+    const sc = document.createElement('script');
+    let done = false;
+    const timer = setTimeout(() => {
+      if (done) return; done = true; delete window[cb]; sc.remove(); reject(new Error('timeout'));
+    }, 9000);
+
+    window[cb] = data => {
+      clearTimeout(timer); done = true; delete window[cb]; sc.remove();
+      try {
+        const items = data?.findCompletedItemsResponse?.[0]?.searchResult?.[0]?.item ?? [];
+        const prices = items
+          .map(i => parseFloat(i?.sellingStatus?.[0]?.convertedCurrentPrice?.[0]?.__value__ ?? 0))
+          .filter(p => p > 0).sort((a,b) => a - b);
+        const listings = items.slice(0, 5).map(i => ({
+          title: i?.title?.[0] ?? '',
+          price: parseFloat(i?.sellingStatus?.[0]?.convertedCurrentPrice?.[0]?.__value__ ?? 0)
+        })).filter(l => l.price > 0);
+        resolve({ prices, listings });
+      } catch(e) { reject(e); }
     };
-    const q=new URLSearchParams({'OPERATION-NAME':'findCompletedItems','GLOBAL-ID':EBAY_GLOBAL,'SERVICE-VERSION':'1.0.0','SECURITY-APPNAME':EBAY_APP_ID,'RESPONSE-DATA-FORMAT':'JSON','callback':cb2,'keywords':sP(term),'itemFilter(0).name':'SoldItemsOnly','itemFilter(0).value':'true','sortOrder':'EndTimeSoonest','paginationInput.entriesPerPage':'20','outputSelector':'SellingStatus'});
-    sc.src=`https://svcs.ebay.com/services/search/FindingService/v1?${q}`;
-    sc.onerror=()=>{clearTimeout(t);done=true;delete window[cb2];sc.remove();reject(new Error('net'))};
+
+    const params = new URLSearchParams({
+      'OPERATION-NAME': 'findCompletedItems', 'GLOBAL-ID': EBAY_GLOBAL,
+      'SERVICE-VERSION': '1.0.0', 'SECURITY-APPNAME': EBAY_KEY,
+      'RESPONSE-DATA-FORMAT': 'JSON', 'callback': cb,
+      'keywords': sP(term), 'itemFilter(0).name': 'SoldItemsOnly',
+      'itemFilter(0).value': 'true', 'sortOrder': 'EndTimeSoonest',
+      'paginationInput.entriesPerPage': '20', 'outputSelector': 'SellingStatus',
+    });
+    sc.src = `https://svcs.ebay.com/services/search/FindingService/v1?${params}`;
+    sc.onerror = () => { clearTimeout(timer); done=true; delete window[cb]; sc.remove(); reject(new Error('net')); };
     document.head.appendChild(sc);
   });
 }
 
-/* ── VINTED (proxy) ── */
-async function fetchVinted(term){
-  const url=`https://www.vinted.fr/api/v2/catalog/items?search_text=${encodeURIComponent(term)}&per_page=30&order=relevance`;
-  const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,{signal:AbortSignal.timeout(7000)});
-  if(!r.ok)throw new Error('v');
-  const j=await r.json();
-  const d=JSON.parse(j.contents);
-  const items=d?.items??[];
-  if(!items.length)return null;
-  const prices=items.map(i=>parseFloat(i?.price??0)).filter(p=>p>0).sort((a,b)=>a-b);
-  return{prices,count:items.length};
+/* ═══════════════════════════════════════════
+   VINTED (proxy public)
+═══════════════════════════════════════════ */
+async function fetchVinted(term) {
+  const url = `https://www.vinted.fr/api/v2/catalog/items?search_text=${encodeURIComponent(term)}&per_page=30&order=relevance`;
+  const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(8000) });
+  if (!r.ok) throw new Error('v');
+  const j = await r.json();
+  const d = JSON.parse(j.contents);
+  const items = d?.items ?? [];
+  if (!items.length) return null;
+  const prices = items.map(i => parseFloat(i?.price ?? 0)).filter(p => p > 0).sort((a,b) => a-b);
+  return { prices, count: items.length };
 }
 
-/* ── AMAZON (proxy + regex) ── */
-async function fetchAmazon(term){
-  const url=`https://www.amazon.fr/s?k=${encodeURIComponent(term)}&ref=nb_sb_noss`;
-  const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,{signal:AbortSignal.timeout(9000)});
-  if(!r.ok)throw new Error('a');
-  const j=await r.json();
-  const html=j.contents;
-  /* Extraire les prix du HTML Amazon */
-  const prices=[];
-  const re=/(\d[\d\s]*)[\.,](\d{2})\s*(?:€|EUR)/g;
+/* ═══════════════════════════════════════════
+   AMAZON (proxy + regex)
+═══════════════════════════════════════════ */
+async function fetchAmazon(term) {
+  const url = `https://www.amazon.fr/s?k=${encodeURIComponent(term)}`;
+  const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(10000) });
+  if (!r.ok) throw new Error('a');
+  const html = (await r.json()).contents;
+  const prices = [];
+  const re = /(\d[\d\s]*)[\.,](\d{2})\s*(?:€|EUR)/g;
   let m;
-  while((m=re.exec(html))!==null){
-    const p=parseFloat(m[1].replace(/[\s\u00a0]/g,'')+'.'+m[2]);
-    if(p>0.5&&p<50000)prices.push(p);
+  while ((m = re.exec(html)) !== null) {
+    const p = parseFloat(m[1].replace(/[\s\u00a0]/g,'') + '.' + m[2]);
+    if (p > 0.5 && p < 50000) prices.push(p);
   }
-  if(!prices.length)return null;
-  prices.sort((a,b)=>a-b);
-  /* Enlever outliers extrêmes (10% de chaque côté) */
-  const cut=Math.max(1,Math.floor(prices.length*0.1));
-  const clean=prices.length>4?prices.slice(cut,prices.length-cut):prices;
-  return clean.length?{prices:clean}:null;
+  if (!prices.length) return null;
+  prices.sort((a,b) => a-b);
+  const cut = Math.max(1, Math.floor(prices.length * 0.1));
+  const clean = prices.length > 4 ? prices.slice(cut, prices.length - cut) : prices;
+  return clean.length ? { prices: clean } : null;
 }
 
-/* ── RENDER ── */
-function render(searchEn,labelFr,conf,ebay,vint,amaz){
-  const q=encodeURIComponent(searchEn),qF=encodeURIComponent(labelFr);
+/* ═══════════════════════════════════════════
+   RENDER RESULTS
+═══════════════════════════════════════════ */
+function renderResults(nameFr, searchEn, ebay, vinted, amazon, previewUrl) {
+  const q  = encodeURIComponent(searchEn);
+  const qF = encodeURIComponent(nameFr);
 
-  /* eBay */
-  let ebHTML='';
-  if(ebay?.prices?.length){
-    const mn=ebay.prices[0],mx=ebay.prices[ebay.prices.length-1],av=Math.round(ebay.prices.reduce((a,b)=>a+b,0)/ebay.prices.length);
-    ebHTML=`<div class="sb2">🟠 eBay — ventes conclues</div>
-    <div class="pg">
-      <div class="pb"><div class="pl">Min</div><div class="pv w">${mn.toFixed(0)} €</div></div>
-      <div class="pb"><div class="pl">Moyen</div><div class="pv g">${av} €</div></div>
-      <div class="pb"><div class="pl">Max</div><div class="pv b">${mx.toFixed(0)} €</div></div>
+  const thumb = previewUrl
+    ? `<img class="obj-thumb" src="${previewUrl}" alt=""/>`
+    : `<div class="obj-thumb-ph">📦</div>`;
+
+  // eBay
+  let ebHTML = '';
+  if (ebay?.prices?.length) {
+    const mn = ebay.prices[0], mx = ebay.prices[ebay.prices.length-1];
+    const av = Math.round(ebay.prices.reduce((a,b)=>a+b,0)/ebay.prices.length);
+    ebHTML = `<div class="pblock pblock-ebay">
+      <div class="pbh"><span class="pbi">🟠</span><span class="pbn ec">eBay — ventes conclues</span><span class="pbc">${ebay.prices.length} ventes</span></div>
+      <div class="pg3">
+        <div class="pg3-box"><div class="pg3-l">Min</div><div class="pg3-v wh">${mn.toFixed(0)} €</div></div>
+        <div class="pg3-box"><div class="pg3-l">Moyen</div><div class="pg3-v gr">${av} €</div></div>
+        <div class="pg3-box"><div class="pg3-l">Max</div><div class="pg3-v bl">${mx.toFixed(0)} €</div></div>
+      </div>
+      <div class="listings">${ebay.listings.map(l=>`<div class="lst-row"><span class="lst-t">${sD(l.title)}</span><span class="lst-p" style="color:var(--a)">${l.price.toFixed(0)} €</span></div>`).join('')}</div>
+      <a class="cta-btn" href="https://www.ebay.fr/sch/i.html?_nkw=${q}&LH_Complete=1&LH_Sold=1" target="_blank" rel="noopener noreferrer">Voir toutes les ventes eBay →</a>
+    </div>`;
+  } else {
+    ebHTML = `<div class="pblock pblock-ebay"><div class="pbh"><span class="pbi">🟠</span><span class="pbn ec">eBay</span></div><p class="no-data">Aucune vente récente. <a href="https://www.ebay.fr/sch/i.html?_nkw=${q}" target="_blank">Chercher quand même →</a></p></div>`;
+  }
+
+  // Vinted
+  let vtHTML = '';
+  if (vinted?.prices?.length) {
+    const mn = vinted.prices[0], mx = vinted.prices[vinted.prices.length-1];
+    const av = Math.round(vinted.prices.reduce((a,b)=>a+b,0)/vinted.prices.length);
+    vtHTML = `<div class="pblock pblock-vinted">
+      <div class="pbh"><span class="pbi">🟢</span><span class="pbn vc">Vinted — annonces actives</span><span class="pbc">${vinted.count} articles</span></div>
+      <div class="pg3">
+        <div class="pg3-box"><div class="pg3-l">Min</div><div class="pg3-v wh">${mn.toFixed(0)} €</div></div>
+        <div class="pg3-box"><div class="pg3-l">Moyen</div><div class="pg3-v vg">${av} €</div></div>
+        <div class="pg3-box"><div class="pg3-l">Max</div><div class="pg3-v bl">${mx.toFixed(0)} €</div></div>
+      </div>
+    </div>`;
+  }
+
+  // Amazon
+  let amHTML = '';
+  if (amazon?.prices?.length) {
+    const mn = amazon.prices[0], mx = amazon.prices[amazon.prices.length-1];
+    const av = Math.round(amazon.prices.reduce((a,b)=>a+b,0)/amazon.prices.length);
+    amHTML = `<div class="pblock pblock-amazon">
+      <div class="pbh"><span class="pbi">🟡</span><span class="pbn ac">Amazon — prix actuels</span><span class="pbc">${amazon.prices.length} résultats</span></div>
+      <div class="pg3">
+        <div class="pg3-box"><div class="pg3-l">Min</div><div class="pg3-v wh">${mn.toFixed(0)} €</div></div>
+        <div class="pg3-box"><div class="pg3-l">Moyen</div><div class="pg3-v or">${av} €</div></div>
+        <div class="pg3-box"><div class="pg3-l">Max</div><div class="pg3-v bl">${mx.toFixed(0)} €</div></div>
+      </div>
+    </div>`;
+  }
+
+  // Autres plateformes
+  const plHTML = PLATS.map(p =>
+    `<a class="plt" href="${p.url(['Leboncoin','Vestiaire','La Redoute'].includes(p.nm)?qF:q)}" target="_blank" rel="noopener noreferrer">
+      <span class="plt-ic">${p.ic}</span><span class="plt-nm">${p.nm}</span>
+    </a>`
+  ).join('');
+
+  $('res-body').innerHTML = `
+    <div class="obj-row">
+      ${thumb}
+      <div>
+        <div class="obj-name">${sD(nameFr)}</div>
+        <div class="obj-tag">🤖 Analysé par IA locale</div>
+      </div>
     </div>
-    <div class="lsts">${ebay.listings.map(l=>`<div class="lst"><span class="ltl">${sD(l.title)}</span><span class="lpr green">${l.price.toFixed(0)} €</span></div>`).join('')}</div>
-    <a class="cta" href="https://www.ebay.fr/sch/i.html?_nkw=${q}&LH_Complete=1&LH_Sold=1" target="_blank" rel="noopener noreferrer">Voir toutes les ventes eBay →</a>`;
-  }else{
-    ebHTML=`<p class="nr">Aucune vente eBay récente. <a href="https://www.ebay.fr/sch/i.html?_nkw=${q}" target="_blank" style="color:var(--a2)">Chercher quand même →</a></p>`;
-  }
-
-  /* Vinted */
-  let vtHTML='';
-  if(vint?.prices?.length){
-    const mn=vint.prices[0],mx=vint.prices[vint.prices.length-1],av=Math.round(vint.prices.reduce((a,b)=>a+b,0)/vint.prices.length);
-    vtHTML=`<div class="vb">
-      <div class="vh"><span style="font-size:15px">🟢</span><span class="vn">Vinted — annonces actives</span><span class="vc">${vint.count} articles</span></div>
-      <div class="vg">
-        <div class="vx"><div class="vxl">Min</div><div class="vxv vw">${mn.toFixed(0)} €</div></div>
-        <div class="vx"><div class="vxl">Moyen</div><div class="vxv">${av} €</div></div>
-        <div class="vx"><div class="vxl">Max</div><div class="vxv vb2">${mx.toFixed(0)} €</div></div>
-      </div>
-    </div>`;
-  }
-
-  /* Amazon */
-  let amHTML='';
-  if(amaz?.prices?.length){
-    const mn=amaz.prices[0],mx=amaz.prices[amaz.prices.length-1],av=Math.round(amaz.prices.reduce((a,b)=>a+b,0)/amaz.prices.length);
-    amHTML=`<div class="amb">
-      <div class="amh"><span style="font-size:15px">🟡</span><span class="amn">Amazon — prix actuels</span><span class="amc">${amaz.prices.length} résultats</span></div>
-      <div class="amg">
-        <div class="amx"><div class="amxl">Min</div><div class="amxv amw">${mn.toFixed(0)} €</div></div>
-        <div class="amx"><div class="amxl">Moyen</div><div class="amxv">${av} €</div></div>
-        <div class="amx"><div class="amxl">Max</div><div class="amxv amb2">${mx.toFixed(0)} €</div></div>
-      </div>
-    </div>`;
-  }
-
-  /* Liens plateformes */
-  const plHTML=PLATS.map(p=>`<a class="plt" href="${p.url(qF)}" target="_blank" rel="noopener noreferrer"><span class="ic">${p.ic}</span><span class="nm">${p.nm}</span></a>`).join('');
-
-  cb.innerHTML=`
-    <div class="on">${sD(labelFr)}</div>
-    <div class="os">Confiance ${conf}%</div>
     ${ebHTML}${vtHTML}${amHTML}
-    <div class="stl">Comparer sur d'autres plateformes</div>
+    <div class="sec-title">Comparer sur d'autres plateformes</div>
     <div class="plts">${plHTML}</div>
   `;
 }
 
-/* ── HISTORY ── */
-function saveHist(name,avg){hist.unshift({name,avg,date:new Date().toLocaleDateString('fr-FR')});if(hist.length>60)hist.length=60;try{localStorage.setItem('wiw',JSON.stringify(hist))}catch(_){}}
-
-function openHistory(){
-  clearInterval(dtimer);dtimer=null;hideCard();
-  $('hpl').innerHTML=!hist.length?'<div class="he">📭 Aucun scan.<br>Pointe vers un objet ou cherche manuellement !</div>':hist.map(h=>`<div class="hi"><div><div class="hn">${sD(h.name)}</div><div class="hd2">${h.date}</div></div><div class="ha">~${h.avg} €</div></div>`).join('');
-  $('hp').classList.add('open');
+/* ═══════════════════════════════════════════
+   HISTORIQUE
+═══════════════════════════════════════════ */
+function saveHistory(name, avg, photo) {
+  history.unshift({
+    name, avg, photo: photo || null,
+    date: new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' })
+  });
+  if (history.length > 80) history.length = 80;
+  try {
+    localStorage.setItem('wiw', JSON.stringify(history));
+  } catch(e) {
+    // Si trop lourd (photos), sauvegarder sans photos
+    const lite = history.map(h => ({...h, photo:null}));
+    try { localStorage.setItem('wiw', JSON.stringify(lite)); } catch(_) {}
+  }
 }
 
-function closeHistory(){$('hp').classList.remove('open');lastCls=null;if(!dtimer)startLoop()}
+function showHistory() {
+  const list = $('hist-list');
+  if (!history.length) {
+    list.innerHTML = '<div class="hist-empty">📭 Aucun scan pour l\'instant.<br>Prends une photo d\'un objet !</div>';
+  } else {
+    list.innerHTML = history.map(h => `
+      <div class="h-item">
+        ${h.photo
+          ? `<img class="h-thumb" src="${h.photo}" alt="" onerror="this.style.display='none'">`
+          : `<div class="h-thumb-ph">📦</div>`}
+        <div class="h-info">
+          <div class="h-name">${sD(h.name)}</div>
+          <div class="h-date">${h.date}</div>
+        </div>
+        ${h.avg ? `<div class="h-price">~${h.avg} €</div>` : ''}
+      </div>`
+    ).join('');
+  }
+  show('s-history');
+}
 
-/* ── TOAST ── */
-function toast(msg,dur=2800){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur)}
+function clearHistory() {
+  if (!confirm('Effacer tout l\'historique ?')) return;
+  history = [];
+  try { localStorage.removeItem('wiw'); } catch(_) {}
+  showHistory();
+  toast('Historique effacé');
+}
 
-/* ── UTILS ── */
-function sP(s){return String(s).replace(/[<>"'&;]/g,'').substring(0,80).trim()}
-function sD(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').substring(0,120)}
-function sl(ms){return new Promise(r=>setTimeout(r,ms))}
+/* ═══════════════════════════════════════════
+   NAVIGATION + UTILITAIRES
+═══════════════════════════════════════════ */
+function goCamera() {
+  show('s-camera');
+  if (!videoStream) openCam();
+}
 
-/* Prevent double-tap zoom */
-let lt=0;
-document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<300)e.preventDefault();lt=n},{passive:false});
+function resetSteps() {
+  [1,2,3,4].forEach(i => {
+    $('step'+i).classList.remove('active','done');
+  });
+  $('step1').classList.add('active');
+}
 
-window.addEventListener('load',init);
+function setStep(n, state) {
+  [1,2,3,4].forEach(i => {
+    const el = $('step'+i);
+    el.classList.remove('active','done');
+    if (i < n) el.classList.add('done');
+    else if (i === n) el.classList.add(state);
+  });
+}
+
+function toast(msg, dur=2800) {
+  const t = $('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+function sP(s) { return String(s).replace(/[<>"'&;]/g,'').substring(0,100).trim(); }
+function sD(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').substring(0,150); }
+function sleep(ms) { return new Promise(r => setTimeout(r,ms)); }
+
+let lt = 0;
+document.addEventListener('touchend', e => {
+  const n = Date.now();
+  if (n - lt < 300) e.preventDefault();
+  lt = n;
+}, { passive: false });
+
+window.addEventListener('load', init);
 </script>
 </body>
 </html>
